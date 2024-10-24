@@ -15,6 +15,7 @@ pipeline {
 
         stage('Maven Build') {
             steps {
+                sh 'mvn clean test -Dspring.profiles.active=test' 
                 sh 'mvn clean install'
             }
         }
