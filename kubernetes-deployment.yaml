@@ -17,18 +17,18 @@ spec:
           image: nivisha/ekart:latest  
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8070
+            - containerPort: 8070  # Port your application listens on
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ekart-ssvc
+  name: ekart-ssvc  # Name of the service
 spec:
   selector:
-    app: ekart
+    app: ekart  # Should match the label in your Deployment
   ports:
     - protocol: "TCP"
-      port: 80  
-      targetPort: 8070  
-  type: LoadBalancer
+      port: 80      # Port to expose externally
+      targetPort: 8070  # Port on the container
+  type: LoadBalancer  # Expose the service externally
