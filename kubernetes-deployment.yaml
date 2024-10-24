@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: ekart
-          image: nivisha/ekart:latest  # Use the correct Docker image name
+          image: nivisha/ekart:latest  
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8070
@@ -29,6 +29,6 @@ spec:
     app: ekart
   ports:
     - protocol: "TCP"
-      port: 80  # The port that the service exposes
-      targetPort: 8070  # The port your application listens on
+      port: 80  
+      targetPort: 8070  
   type: LoadBalancer
