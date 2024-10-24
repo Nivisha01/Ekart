@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'nivisha/ekart:latest' 
         SONARQUBE_SERVER = 'SonarQube'
-        KUBE_TOKEN = credentials('kube-token')
+        KUBE_TOKEN = credentials('kube-token') 
     }
 
     stages {
@@ -32,7 +32,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE -f docker/Dockerfile .'  
- 
             }
         }
 
@@ -46,17 +45,12 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            // Set the KUBE_TOKEN environment variable for kubectl
-            env.KUBE_TOKEN = credentials('kube-token')
+            steps {
+                sh '''
+                kubectl apply -f kubernetes-deployment.yaml --token=$KUBE_TOKEN
+                '''
+            }
         }
-        sh '''
-        kubectl apply -f kubernetes-deployment.yaml --token=$KUBE_TOKEN
-        '''
-    }
-}
-
     }
 
     post {
