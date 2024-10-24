@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'nivisha/my-app:latest'
-        SONARQUBE_SERVER = 'SonarQube'
+        DOCKER_IMAGE = 'nivisha/ekart:latest' 
+        SONARQUBE_SERVER = 'SonarQube' 
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Nivisha01/Ekart.git'
+                git branch: 'main', url: 'https://github.com/Nivisha01/Ekart.git' 
             }
         }
 
@@ -21,7 +21,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv(SONARQUBE_SERVER) {
                     sh 'mvn sonar:sonar'
                 }
             }
@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'docker build -t $DOCKER_IMAGE .' 
             }
         }
 
@@ -44,8 +44,14 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f kubernetes-deployment.yaml'
+                sh 'kubectl apply -f kubernetes-deployment.yaml' 
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs() 
         }
     }
 }
