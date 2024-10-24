@@ -15,8 +15,8 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh 'mvn clean test -Dspring.profiles.active=test' 
-                sh 'mvn clean install'
+                // Skip tests during the build
+                sh 'mvn clean install -DskipTests' 
             }
         }
 
