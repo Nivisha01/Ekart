@@ -2,31 +2,33 @@ pipeline {
     agent any
 
     environment {
-        // Environment variables to store SonarQube details
+        // Environment variables for SonarQube and DockerHub
         SONAR_HOST_URL = 'http://23.22.187.159:9000'
-        SONAR_TOKEN = credentials('sonar-token')  // Use Jenkins credentials for the SonarQube token
+        SONAR_TOKEN = credentials('sonar-token')  // SonarQube token stored in Jenkins credentials
+        DOCKER_IMAGE = 'nivisha/ekart:latest'  // Docker image name
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                // Cloning the GitHub repository using Personal Access Token or SSH
+                // Clone the GitHub repository using PAT credentials
                 git branch: 'main',
                     url: 'https://github.com/Nivisha01/Ekart.git',
-                    credentialsId: 'GitHub_Cred'  // Use PAT-based credentials stored in Jenkins
+                    credentialsId: 'GitHub_Cred'
             }
         }
 
         stage('Maven Build - Skip Tests') {
             steps {
-                // Build the project using Maven and skip tests
+                // Build the project using Maven, skipping tests
                 sh 'mvn clean install -DskipTests'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {  // Ensure SonarQube is configured in Jenkins
+                withSonarQubeEnv('SonarQube') {
+                    // Perform SonarQube analysis, skipping tests
                     sh '''
                         mvn sonar:sonar \
                           -Dmaven.test.skip=true \
@@ -42,9 +44,10 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
+                        // Build Docker image from the correct path and push it to DockerHub
                         sh '''
-                        sudo docker build -t nivisha/ekart:latestt .
-                        sudo docker push nivisha/ekart:latest
+                        docker build -t $DOCKER_IMAGE -f docker/Dockerfile .
+                        docker push $DOCKER_IMAGE
                         '''
                     }
                 }
@@ -53,7 +56,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                // Apply Kubernetes deployment using kubectl
+                // Deploy the application using kubectl
                 sh 'kubectl apply -f k8s-deployment.yaml'
             }
         }
@@ -61,7 +64,7 @@ pipeline {
 
     post {
         always {
-            // Clean the workspace after each run
+            // Clean the workspace after each run to free up space
             cleanWs()
         }
     }
