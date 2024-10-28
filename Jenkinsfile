@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'nivisha/ekart:latest'
         SONARQUBE_SERVER = 'SonarQube'
-        PATH = "/opt/maven/bin:$PATH"  // Ensure Maven path is included
+        PATH = "/usr/local/bin:$PATH"
     }
 
     stages {
@@ -16,14 +16,14 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh '/opt/maven/bin/mvn clean install -DskipTests'
+                sh 'mvn clean install -DskipTests'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv(SONARQUBE_SERVER) {
-                    sh '/opt/maven/bin/mvn sonar:sonar'
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
@@ -59,7 +59,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    kubectl expose deployment ekart-deployment --type=NodePort --port=8080
+                    kubectl expose deployment ekart-deployment --type=NodePort --port=8070
                     SERVICE_URL=$(minikube service ekart-deployment --url)
                     echo "Application is available at: $SERVICE_URL"
                     '''
@@ -70,7 +70,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            cleanWs()  // Clean workspace after every build
         }
     }
 }
