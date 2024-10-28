@@ -15,9 +15,11 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * Shopping Cart is implemented with a Map, and as a session bean
+ * Shopping Cart is implemented with a Map, and as a session bean.
  *
  * @author Dusan
  */
@@ -35,62 +37,43 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         this.productRepository = productRepository;
     }
 
-    /**
-     * If product is in the map just increment quantity by 1.
-     * If product is not in the map with, add it with quantity 1
-     *
-     * @param product
-     */
     @Override
     public void addProduct(Product product) {
-        if (products.containsKey(product)) {
-            products.replace(product, products.get(product) + 1);
-        } else {
-            products.put(product, 1);
-        }
+        products.merge(product, 1, Integer::sum);
     }
 
-    /**
-     * If product is in the map with quantity > 1, just decrement quantity by 1.
-     * If product is in the map with quantity 1, remove it from map
-     *
-     * @param product
-     */
     @Override
     public void removeProduct(Product product) {
-        if (products.containsKey(product)) {
-            if (products.get(product) > 1)
-                products.replace(product, products.get(product) - 1);
-            else if (products.get(product) == 1) {
-                products.remove(product);
-            }
-        }
+        products.computeIfPresent(product, (p, quantity) -> quantity > 1 ? quantity - 1 : null);
     }
 
-    /**
-     * @return unmodifiable copy of the map
-     */
     @Override
     public Map<Product, Integer> getProductsInCart() {
         return Collections.unmodifiableMap(products);
     }
 
-    /**
-     * Checkout will rollback if there is not enough of some product in stock
-     *
-     * @throws NotEnoughProductsInStockException
-     */
     @Override
     public void checkout() throws NotEnoughProductsInStockException {
-        Product product;
         for (Map.Entry<Product, Integer> entry : products.entrySet()) {
-            // Refresh quantity for every product before checking
-            product = productRepository.findOne(entry.getKey().getId());
-            if (product.getQuantity() < entry.getValue())
+            // Find product by ID using findById() (replaces deprecated findOne())
+            Optional<Product> productOptional = productRepository.findById(entry.getKey().getId());
+
+            if (productOptional.isEmpty()) {
+                throw new NotEnoughProductsInStockException(entry.getKey());
+            }
+
+            Product product = productOptional.get();
+
+            if (product.getQuantity() < entry.getValue()) {
                 throw new NotEnoughProductsInStockException(product);
-            entry.getKey().setQuantity(product.getQuantity() - entry.getValue());
+            }
+
+            product.setQuantity(product.getQuantity() - entry.getValue());
         }
-        productRepository.save(products.keySet());
+
+        // Save each product individually (since save() no longer supports collections)
+        products.keySet().forEach(productRepository::save);
+
         productRepository.flush();
         products.clear();
     }
