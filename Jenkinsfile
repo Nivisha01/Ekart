@@ -5,16 +5,16 @@ pipeline {
         SONAR_HOST_URL = 'http://23.22.187.159:9000'
         SONAR_TOKEN = credentials('sonar-token')
         DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred')
-        PROJECT_NAME = 'ekart'
-        DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:${env.BUILD_NUMBER}"  // Tag with build number
+        PROJECT_NAME = 'my-app'
+        DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:${env.BUILD_NUMBER}-${GIT_COMMIT.take(7)}"  // Tag with build number and short commit hash
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Nivisha01/Ekart.git',
+                git branch: 'main',  // Ensure this matches your branch
+                    url: 'https://github.com/Nivisha01/simple-java-maven-app.git',
                     credentialsId: 'GitHub_Cred'
             }
         }
@@ -58,8 +58,8 @@ pipeline {
                     withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
                         sh """
                             kubectl config use-context minikube
-                            kubectl create deployment ekart --image=${DOCKER_IMAGE} --replicas=2
-                            kubectl expose deployment ekart --type=LoadBalancer --port=80 --target-port=8070
+                            kubectl create deployment ${PROJECT_NAME} --image=${DOCKER_IMAGE} --replicas=2
+                            kubectl expose deployment ${PROJECT_NAME} --type=NodePort --port=80 --target-port=8070  // Use NodePort for Minikube
                         """
                     }
                 }
@@ -70,6 +70,8 @@ pipeline {
     post {
         always {
             cleanWs() // Clean up the workspace
+            // Optionally, add notifications here
         }
     }
 }
+
