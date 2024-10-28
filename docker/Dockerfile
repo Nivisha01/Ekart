@@ -1,11 +1,11 @@
-FROM openjdk:8u151-jdk-alpine3.7
+FROM openjdk:17-jdk-alpine
 
-EXPOSE 8070
+EXPOSE 8080
 
-ENV APP_HOME /usr/src/app
+ENV APP_HOME=/usr/src/app
 
 COPY target/shopping-cart-0.0.1-SNAPSHOT.jar $APP_HOME/app.jar
 
 WORKDIR $APP_HOME
 
-ENTRYPOINT exec java -jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
