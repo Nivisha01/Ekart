@@ -43,8 +43,8 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
                         sh '''
-                        docker build -t your-dockerhub-username/shopping-cart:latest .
-                        docker push your-dockerhub-username/shopping-cart:latest
+                        sudo docker build -t your-dockerhub-username/shopping-cart:latest .
+                        sudo docker push your-dockerhub-username/shopping-cart:latest
                         '''
                     }
                 }
