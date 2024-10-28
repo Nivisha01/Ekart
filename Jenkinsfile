@@ -12,7 +12,7 @@ pipeline {
             steps {
                 // Cloning the GitHub repository using Personal Access Token or SSH
                 git branch: 'main',
-                    url: 'https://github.com/your-repo/shopping-cart.git',
+                    url: 'https://github.com/Nivisha01/Ekart.git',
                     credentialsId: 'GitHub_Cred'  // Use PAT-based credentials stored in Jenkins
             }
         }
