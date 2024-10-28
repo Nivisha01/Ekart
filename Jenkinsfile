@@ -1,10 +1,9 @@
-
 pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'nivisha/ekart:latest'  // Docker image tag
-        SONARQUBE_SERVER = 'SonarQube'  // SonarQube server configured in Jenkins
+        DOCKER_IMAGE = 'nivisha/ekart:latest'
+        SONARQUBE_SERVER = 'SonarQube'
     }
 
     stages {
@@ -37,8 +36,8 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'DockerHub_Cred', 
-                    usernameVariable: 'DOCKER_USER', 
+                    credentialsId: 'DockerHub_Cred',
+                    usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
@@ -51,7 +50,7 @@ pipeline {
 
         stage('Deploy to Minikube') {
             steps {
-                sh 'kubectl apply -f k8s-deployment.yaml'
+                sh 'kubectl apply -f deployment.yaml'
             }
         }
 
@@ -70,7 +69,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()  // Clean workspace after every build
+            cleanWs()
         }
     }
 }
