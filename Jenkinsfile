@@ -19,7 +19,7 @@ pipeline {
             }
         }
 
-        stage('Maven Build - Skip Tests') {
+        stage('Maven Build') {
             steps {
                 sh 'mvn clean install -DskipTests'
             }
@@ -56,16 +56,11 @@ pipeline {
             steps {
                 script {
                     withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
-                        withCredentials([string(credentialsId: 'k8s-jenkins-token', variable: 'K8S_TOKEN')]) {
-                            // Use the token directly in kubectl commands to avoid interpolation warning
-                            sh """
-                                kubectl config set-credentials jenkins-sa --token=${K8S_TOKEN}
-                                kubectl config use-context minikube
-                                kubectl apply -f deployment.yaml --validate=false
-                                kubectl apply -f service.yaml
-                                kubectl rollout restart deployment ekart-deployment --context=minikube
-                            """
-                        }
+                        sh """
+                            kubectl config use-context minikube
+                            kubectl create deployment ekart --image=${DOCKER_IMAGE} --replicas=2
+                            kubectl expose deployment ekart --type=LoadBalancer --port=80 --target-port=8070
+                        """
                     }
                 }
             }
@@ -73,16 +68,8 @@ pipeline {
     }
 
     post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            mail to: 'your-email@example.com', 
-                subject: "Build failed in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}", 
-                body: "Something is wrong with ${env.JOB_NAME} build. Please check it out!"
-        }
         always {
-            cleanWs()
+            cleanWs() // Clean up the workspace
         }
     }
 }
