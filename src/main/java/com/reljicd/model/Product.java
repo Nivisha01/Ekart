@@ -1,11 +1,12 @@
 package com.reljicd.model;
 
 import org.hibernate.validator.constraints.Length;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
 
 import javax.persistence.*;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Min;
 import java.math.BigDecimal;
+
 
 @Entity
 @Table(name = "product")
