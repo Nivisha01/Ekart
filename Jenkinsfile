@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'nivisha/ekart:latest'
         SONARQUBE_SERVER = 'SonarQube'
+        PATH = "/usr/local/bin:$PATH"
     }
 
     stages {
@@ -36,8 +37,8 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'DockerHub_Cred',
-                    usernameVariable: 'DOCKER_USER',
+                    credentialsId: 'DockerHub_Cred', 
+                    usernameVariable: 'DOCKER_USER', 
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
@@ -69,7 +70,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            cleanWs()  // Clean workspace after every build
         }
     }
 }
