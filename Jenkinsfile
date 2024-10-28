@@ -8,7 +8,6 @@ pipeline {
         PROJECT_NAME = 'ekart'  // Project name for Docker
         DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:latest"  // Docker image name
         KUBECONFIG = '/var/lib/jenkins/.kube/config'  // Kubernetes config path for Jenkins
-        K8S_TOKEN = credentials('k8s-jenkins-token')  // Token for Kubernetes service account
     }
 
     stages {
@@ -57,16 +56,19 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Set KUBECONFIG and authenticate using the service account token
+                    // Set KUBECONFIG
                     withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
-                        // Write the token to the kubeconfig for authentication
-                        sh """
-                            kubectl config set-credentials jenkins-sa --token=${K8S_TOKEN}
-                            kubectl config use-context minikube
-                            kubectl apply -f deployment.yaml --validate=false
-                            kubectl apply -f service.yaml
-                            kubectl rollout restart deployment ekart-deployment --context=minikube
-                        """
+                        // Use the Kubernetes token securely
+                        withCredentials([string(credentialsId: 'k8s-jenkins-token', variable: 'K8S_TOKEN')]) {
+                            // Write the token to the kubeconfig for authentication
+                            sh """
+                                kubectl config set-credentials jenkins-sa --token=${K8S_TOKEN}
+                                kubectl config use-context minikube
+                                kubectl apply -f deployment.yaml --validate=false
+                                kubectl apply -f service.yaml
+                                kubectl rollout restart deployment ekart-deployment --context=minikube
+                            """
+                        }
                     }
                 }
             }
