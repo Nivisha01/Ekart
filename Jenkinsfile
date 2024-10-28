@@ -1,10 +1,10 @@
 pipeline {
-    agent any
+    agent any  // Use Jenkins controller to run all stages
 
     environment {
         DOCKER_IMAGE = 'nivisha/ekart:latest'
         SONARQUBE_SERVER = 'SonarQube'
-        PATH = "/usr/local/bin:$PATH"
+        PATH = "/usr/local/bin:$PATH"  // Ensure Docker and kubectl are available
     }
 
     stages {
@@ -37,8 +37,8 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'DockerHub_Cred', 
-                    usernameVariable: 'DOCKER_USER', 
+                    credentialsId: 'DockerHub_Cred',
+                    usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
