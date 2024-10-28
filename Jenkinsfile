@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL = 'http://23.22.187.159:9000'  // SonarQube URL
-        SONAR_TOKEN = credentials('sonar-token')  // SonarQube token credential
-        DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred')  // DockerHub credentials
-        PROJECT_NAME = 'ekart'  // Project name for Docker
-        DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:latest"  // Docker image name
-        KUBECONFIG = '/var/lib/jenkins/.kube/config'  // Kubernetes config path for Jenkins
+        SONAR_HOST_URL = 'http://23.22.187.159:9000'
+        SONAR_TOKEN = credentials('sonar-token')
+        DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred')
+        PROJECT_NAME = 'ekart'
+        DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:${env.BUILD_NUMBER}"  // Tag with build number
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
@@ -15,19 +15,19 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/Nivisha01/Ekart.git',
-                    credentialsId: 'GitHub_Cred'  // GitHub credentials for cloning
+                    credentialsId: 'GitHub_Cred'
             }
         }
 
         stage('Maven Build - Skip Tests') {
             steps {
-                sh 'mvn clean install -DskipTests'  // Build the application
+                sh 'mvn clean install -DskipTests'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {  // Use the SonarQube environment
+                withSonarQubeEnv('SonarQube') {
                     sh """
                         mvn sonar:sonar \
                           -Dmaven.test.skip=true \
@@ -42,7 +42,6 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 script {
-                    // Log in to DockerHub and push the Docker image
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
                         sh """
                             docker build -t ${DOCKER_IMAGE} -f docker/Dockerfile .
@@ -56,11 +55,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Set KUBECONFIG
                     withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
-                        // Use the Kubernetes token securely
                         withCredentials([string(credentialsId: 'k8s-jenkins-token', variable: 'K8S_TOKEN')]) {
-                            // Write the token to the kubeconfig for authentication
                             sh """
                                 kubectl config set-credentials jenkins-sa --token=${K8S_TOKEN}
                                 kubectl config use-context minikube
@@ -76,8 +72,16 @@ pipeline {
     }
 
     post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            mail to: 'your-email@example.com', 
+                subject: "Build failed in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}", 
+                body: "Something is wrong with ${env.JOB_NAME} build. Please check it out!"
+        }
         always {
-            cleanWs()  // Clean up the workspace
+            cleanWs()
         }
     }
 }
