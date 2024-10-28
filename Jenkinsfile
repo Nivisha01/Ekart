@@ -1,15 +1,12 @@
 pipeline {
     agent any
 
-    environment {
-        SONAR_HOST_URL = 'http://23.22.187.159:9000'
-        SONAR_TOKEN = credentials('sonar-token')  // Use Jenkins credentials to securely store the token
-    }
-
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-repo/shopping-cart.git'
+                git branch: 'main',
+                    url: 'https://github.com/your-repo/shopping-cart.git',
+                    credentialsId: 'GitHub_Cred'
             }
         }
 
@@ -21,7 +18,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {  // Ensure SonarQube is configured in Jenkins
+                withSonarQubeEnv('SonarQube') {
                     sh '''
                         mvn clean verify sonar:sonar \
                           -Dmaven.test.skip=true \
