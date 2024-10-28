@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // Environment variables for SonarQube and DockerHub
-        DOCKER_IMAGE = 'nivisha/ekart:latest'
+        // SonarQube and Docker details
         SONAR_HOST_URL = 'http://23.22.187.159:9000'
-        SONAR_TOKEN = credentials('sonar-token')
+        SONAR_TOKEN = credentials('sonar-token')  // Use Jenkins credentials for SonarQube token
+        DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred') // DockerHub credentials
+        PROJECT_NAME = 'ekart'
+        DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:latest"
     }
 
     stages {
@@ -26,13 +28,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
+                    sh """
                         mvn sonar:sonar \
                           -Dmaven.test.skip=true \
-                          -Dsonar.projectKey=shopping-cart \
+                          -Dsonar.projectKey=${PROJECT_NAME} \
                           -Dsonar.host.url=$SONAR_HOST_URL \
                           -Dsonar.login=$SONAR_TOKEN
-                    '''
+                    """
                 }
             }
         }
@@ -41,10 +43,10 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
-                        sh '''
-                            docker build -t $DOCKER_IMAGE -f docker/Dockerfile .
-                            docker push $DOCKER_IMAGE
-                        '''
+                        sh """
+                            docker build -t ${DOCKER_IMAGE} -f docker/Dockerfile .
+                            docker push ${DOCKER_IMAGE}
+                        """
                     }
                 }
             }
@@ -52,18 +54,19 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                // Apply both deployment and service configurations
-                sh '''
-                    kubectl apply -f deployment.yaml --validate=false
-                    kubectl apply -f service.yaml --validate=false
-                '''
+                script {
+                    sh 'kubectl config use-context minikube'
+                    sh 'kubectl apply -f deployment.yaml --validate=false'
+                    sh 'kubectl apply -f service.yaml'
+                    sh 'kubectl rollout restart deployment ekart-deployment --context=minikube'
+                }
             }
         }
     }
 
     post {
         always {
-            cleanWs()
+            cleanWs() // Clean up the workspace
         }
     }
 }
