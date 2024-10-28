@@ -6,6 +6,7 @@ import com.reljicd.util.Pager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,19 +29,21 @@ public class HomeController {
     @GetMapping("/home")
     public ModelAndView home(@RequestParam("page") Optional<Integer> page) {
 
-        // Evaluate page. If requested parameter is null or less than 0 (to
-        // prevent exception), return initial size. Otherwise, return value of
-        // param. decreased by 1.
+        // Evaluate page number. If the parameter is null or < 1, set to INITIAL_PAGE.
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
-        Page<Product> products = productService.findAllProductsPageable(new PageRequest(evalPage, 5));
+        // Create a PageRequest with sorting by 'id' in ascending order.
+        PageRequest pageRequest = PageRequest.of(evalPage, 5, Sort.by("id").ascending());
+
+        // Fetch paginated products.
+        Page<Product> products = productService.findAllProductsPageable(pageRequest);
         Pager pager = new Pager(products);
 
+        // Prepare the ModelAndView.
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject("products", products);
         modelAndView.addObject("pager", pager);
         modelAndView.setViewName("/home");
         return modelAndView;
     }
-
 }
