@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube and Docker details
         SONAR_HOST_URL = 'http://23.22.187.159:9000'
-        SONAR_TOKEN = credentials('sonar-token')  // Use Jenkins credentials for SonarQube token
-        DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred') // DockerHub credentials
+        SONAR_TOKEN = credentials('sonar-token')
+        DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred')
         PROJECT_NAME = 'ekart'
         DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:latest"
+        KUBECONFIG = '/var/lib/jenkins/.kube/config' // Kubernetes config path for Jenkins
     }
 
     stages {
@@ -55,10 +55,12 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh 'kubectl config use-context minikube'
-                    sh 'kubectl apply -f deployment.yaml --validate=false'
-                    sh 'kubectl apply -f service.yaml'
-                    sh 'kubectl rollout restart deployment ekart-deployment --context=minikube'
+                    withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
+                        sh 'kubectl config use-context minikube'
+                        sh 'kubectl apply -f deployment.yaml --validate=false'
+                        sh 'kubectl apply -f service.yaml'
+                        sh 'kubectl rollout restart deployment ekart-deployment --context=minikube'
+                    }
                 }
             }
         }
