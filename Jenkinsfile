@@ -2,19 +2,18 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'nivisha/ekart:latest'
-        SONARQUBE_SERVER = 'SonarQube'
-        PATH = "/usr/local/bin:$PATH"
+        SONAR_HOST_URL = 'http://23.22.187.159:9000'
+        SONAR_TOKEN = credentials('sonar-token')  // Use Jenkins credentials to securely store the token
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Nivisha01/Ekart.git'
+                git branch: 'main', url: 'https://github.com/your-repo/shopping-cart.git'
             }
         }
 
-        stage('Maven Build') {
+        stage('Maven Build - Skip Tests') {
             steps {
                 sh 'mvn clean install -DskipTests'
             }
@@ -22,46 +21,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv(SONARQUBE_SERVER) {
-                    sh 'mvn sonar:sonar'
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $DOCKER_IMAGE -f docker/Dockerfile .'
-            }
-        }
-
-        stage('Push Docker Image to DockerHub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'DockerHub_Cred',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+                withSonarQubeEnv('SonarQube') {  // Ensure SonarQube is configured in Jenkins
                     sh '''
-                    docker login -u $DOCKER_USER -p $DOCKER_PASS
-                    docker push $DOCKER_IMAGE
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy to Minikube') {
-            steps {
-                sh 'kubectl apply -f deployment.yaml'
-            }
-        }
-
-        stage('Expose Service') {
-            steps {
-                script {
-                    sh '''
-                    kubectl expose deployment ekart-deployment --type=NodePort --port=8070
-                    SERVICE_URL=$(minikube service ekart-deployment --url)
-                    echo "Application is available at: $SERVICE_URL"
+                        mvn clean verify sonar:sonar \
+                          -Dmaven.test.skip=true \
+                          -Dsonar.projectKey=shopping-cart \
+                          -Dsonar.host.url=$SONAR_HOST_URL \
+                          -Dsonar.login=$SONAR_TOKEN
                     '''
                 }
             }
@@ -70,7 +36,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()  // Clean workspace after every build
+            cleanWs()
         }
     }
 }
