@@ -1,9 +1,9 @@
 package com.reljicd.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotEmpty;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -23,13 +23,13 @@ public class User {
     private String email;
 
     @Column(name = "password", nullable = false)
-    @Length(min = 5, message = "*Your password must have at least 5 characters")
+    @Size(min = 5, message = "*Your password must have at least 5 characters")
     @NotEmpty(message = "*Please provide your password")
     @JsonIgnore
     private String password;
 
     @Column(name = "username", nullable = false, unique = true)
-    @Length(min = 5, message = "*Your username must have at least 5 characters")
+    @Size(min = 5, message = "*Your username must have at least 5 characters")
     @NotEmpty(message = "*Please provide your name")
     private String username;
 
@@ -45,7 +45,8 @@ public class User {
     private int active;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Collection<Role> roles;
 
     public Long getId() {
@@ -112,3 +113,4 @@ public class User {
         this.roles = roles;
     }
 }
+
