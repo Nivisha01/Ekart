@@ -59,7 +59,7 @@ pipeline {
                         sh """
                             kubectl config use-context minikube
                             kubectl create deployment ${PROJECT_NAME} --image=${DOCKER_IMAGE} --replicas=2
-                            kubectl expose deployment ${PROJECT_NAME} --type=NodePort --port=80 --target-port=8070  // Use NodePort for Minikube
+                            kubectl expose deployment ${PROJECT_NAME} --type=NodePort --port=80 --target-port=8010  // Use NodePort for Minikube
                         """
                     }
                 }
