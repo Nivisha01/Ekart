@@ -1,10 +1,10 @@
 pipeline {
-    agent any  // Use Jenkins controller to run all stages
+    agent any
 
     environment {
         DOCKER_IMAGE = 'nivisha/ekart:latest'
         SONARQUBE_SERVER = 'SonarQube'
-        PATH = "/usr/local/bin:$PATH"  // Ensure Docker and kubectl are available
+        PATH = "/opt/maven/bin:$PATH"  // Ensure Maven path is included
     }
 
     stages {
@@ -16,14 +16,14 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh 'mvn clean install -DskipTests'
+                sh '/opt/maven/bin/mvn clean install -DskipTests'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv(SONARQUBE_SERVER) {
-                    sh 'mvn sonar:sonar'
+                    sh '/opt/maven/bin/mvn sonar:sonar'
                 }
             }
         }
@@ -70,7 +70,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()  // Clean workspace after every build
+            cleanWs()
         }
     }
 }
