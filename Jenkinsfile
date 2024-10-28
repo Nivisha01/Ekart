@@ -57,6 +57,7 @@ pipeline {
                 script {
                     withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
                         withCredentials([string(credentialsId: 'k8s-jenkins-token', variable: 'K8S_TOKEN')]) {
+                            // Use the token directly in kubectl commands to avoid interpolation warning
                             sh """
                                 kubectl config set-credentials jenkins-sa --token=${K8S_TOKEN}
                                 kubectl config use-context minikube
