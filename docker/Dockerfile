@@ -1,8 +1,10 @@
-FROM openjdk:17-jdk-alpine
+# Dockerfile
 
-EXPOSE 8080
+FROM openjdk:17-jdk-slim
 
-ENV APP_HOME=/usr/src/app
+EXPOSE 8070  # Ensure the same port as in application.properties
+
+ENV APP_HOME /usr/src/app
 
 COPY target/shopping-cart-0.0.1-SNAPSHOT.jar $APP_HOME/app.jar
 
