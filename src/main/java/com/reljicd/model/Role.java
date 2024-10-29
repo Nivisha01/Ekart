@@ -12,11 +12,13 @@ public class Role {
     @Column(name = "role_id")
     private Long id;
 
-    @Column(name = "role", unique = true)
+    @Column(name = "role", unique = true, nullable = false)
     private String role;
 
     @ManyToMany(cascade = CascadeType.ALL, mappedBy = "roles")
     private Collection<User> users;
+
+    // Getters and Setters
 
     public Long getId() {
         return id;
