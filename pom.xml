@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity5</artifactId>
-            <version>3.0.12.RELEASE</version>
+            <version>3.1.0.RELEASE</version> <!-- Updated version -->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -144,6 +144,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <repository>
