@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.0</version> <!-- Update to the latest stable version -->
+        <version>3.9.9</version> <!-- Update to the latest stable version -->
         <relativePath/>
     </parent>
 
