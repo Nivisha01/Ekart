@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL = 'http://50.19.149.10:9000' // Updated SonarQube URL
+        SONAR_HOST_URL = 'http://54.84.52.102:9000' // Updated SonarQube URL
         SONAR_TOKEN = credentials('sonar-token')
         DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred')
         PROJECT_NAME = 'ekart'  // Update to match your app name
