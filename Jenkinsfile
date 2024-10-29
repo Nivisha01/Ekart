@@ -1,4 +1,4 @@
-pipeline {
+pipeline { 
     agent any
     environment {
         DOCKER_IMAGE_NAME = 'nivisha/my-app:latest' 
