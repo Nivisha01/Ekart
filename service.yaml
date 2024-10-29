@@ -5,9 +5,9 @@ metadata:
 spec:
   selector:
     app: ekart
-  type: NodePort  # Expose this service as a NodePort
+  type: NodePort  
   ports:
     - protocol: TCP
-      port: 8070       # The port exposed by the service
-      targetPort: 8070 # The port inside the container
-      nodePort: 30007  # Optional: Use a fixed NodePort (optional but recommended)
+      port: 8070       
+      targetPort: 8070 
+      nodePort: 30007  
