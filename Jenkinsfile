@@ -40,7 +40,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
                         def artifactPath = "target/shopping-cart-0.0.1-SNAPSHOT.war" 
-                        // Build the Docker image
+                        // Build the Docker image using the WAR file
                         sh "docker build -t ${DOCKER_IMAGE_NAME} -f docker/Dockerfile ."
                         // Push the Docker image to the registry
                         sh "docker push ${DOCKER_IMAGE_NAME}"
@@ -51,9 +51,9 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Apply Kubernetes deployment configuration
-                   sh 'kubectl apply -f k8s-deployment.yaml'  
-                   sh 'kubectl apply -f k8s-service.yaml'
+                    // Apply Kubernetes deployment and service configuration
+                    sh 'kubectl apply -f k8s-deployment.yaml'  
+                    sh 'kubectl apply -f k8s-service.yaml'
                 }
             }
         }
