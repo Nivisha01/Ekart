@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: ekart-container
-          image: nivisha/ekart:latest
+          image: nivisha/my-app:latest  
           ports:
-            - containerPort: 8070  # Must match the port inside the container
+            - containerPort: 8070  
           imagePullPolicy: Always
           resources:
             requests:
