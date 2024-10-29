@@ -21,7 +21,8 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh 'mvn clean install -DskipTests'
+                // Ensure that the Maven goal includes packaging for a .war file
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -44,7 +45,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
                         sh """
-                            docker build -t ${DOCKER_IMAGE} -f docker/Dockerfile .
+                            docker build -t ${DOCKER_IMAGE} -f docker/Dockerfile . 
                             docker push ${DOCKER_IMAGE}
                         """
                     }
