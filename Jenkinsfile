@@ -14,7 +14,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git branch: 'main',  // Ensure this matches your branch
-                    url: 'https://github.com/Nivisha01/simple-java-maven-app.git',
+                    url: 'https://github.com/Nivisha01/Ekart.git',
                     credentialsId: 'GitHub_Cred'
             }
         }
