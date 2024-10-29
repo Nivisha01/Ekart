@@ -1,18 +1,20 @@
-pipeline { 
+pipeline {
     agent any
     environment {
-        DOCKER_IMAGE_NAME = 'nivisha/my-app:latest' 
+        DOCKER_IMAGE_NAME = 'nivisha/my-app:latest'
         GITHUB_REPO = 'https://github.com/Nivisha01/Ekart.git'
         SONARQUBE_SERVER = 'http://44.196.180.172:9000/'
-        SONARQUBE_TOKEN = credentials('sonar-token')
-        PROJECT_NAME = 'project-Ekart' 
+        SONARQUBE_TOKEN = credentials('sonar-token') // Make sure 'sonar-token' is configured in Jenkins
+        PROJECT_NAME = 'project-Ekart'
         SONAR_HOST_URL = "${SONARQUBE_SERVER}"
     }
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout code from GitHub repository
-                git url: "${GITHUB_REPO}", branch: 'main'
+                script {
+                    // Checkout code from GitHub repository using credentials
+                    git credentialsId: 'GitHub_Credentials', url: "${GITHUB_REPO}", branch: 'main'
+                }
             }
         }
         stage('Build with Maven') {
@@ -23,7 +25,7 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { 
+                withSonarQubeEnv('SonarQube') {
                     // Run SonarQube analysis
                     sh """
                         mvn sonar:sonar \
@@ -39,7 +41,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
-                        def artifactPath = "target/shopping-cart-0.0.1-SNAPSHOT.war" 
+                        def artifactPath = "target/shopping-cart-0.0.1-SNAPSHOT.war"
                         // Build the Docker image using the WAR file
                         sh "docker build -t ${DOCKER_IMAGE_NAME} -f docker/Dockerfile ."
                         // Push the Docker image to the registry
@@ -52,7 +54,7 @@ pipeline {
             steps {
                 script {
                     // Apply Kubernetes deployment and service configuration
-                    sh 'kubectl apply -f k8s-deployment.yaml'  
+                    sh 'kubectl apply -f k8s-deployment.yaml'
                     sh 'kubectl apply -f k8s-service.yaml'
                 }
             }
