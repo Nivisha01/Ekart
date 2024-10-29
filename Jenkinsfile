@@ -21,7 +21,7 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                // Ensure that the Maven goal includes packaging for a .war file
+                // Ensure that the Maven goal includes packaging for a .jar file
                 sh 'mvn clean package -DskipTests'
             }
         }
