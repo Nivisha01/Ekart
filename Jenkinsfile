@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL = 'http://23.22.187.159:9000'
+        SONAR_HOST_URL = 'http://50.19.149.10:9000'
         SONAR_TOKEN = credentials('sonar-token')
         DOCKERHUB_CREDENTIALS = credentials('DockerHub_Cred')
-        PROJECT_NAME = 'my-app'
+        PROJECT_NAME = 'ekart'  // Update to match your app name
         DOCKER_IMAGE = "nivisha/${PROJECT_NAME}:${env.BUILD_NUMBER}-${GIT_COMMIT.take(7)}"  // Tag with build number and short commit hash
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
@@ -56,10 +56,10 @@ pipeline {
             steps {
                 script {
                     withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
+                        // Apply the deployment and service YAML files
                         sh """
-                            kubectl config use-context minikube
-                            kubectl create deployment ${PROJECT_NAME} --image=${DOCKER_IMAGE} --replicas=2
-                            kubectl expose deployment ${PROJECT_NAME} --type=NodePort --port=80 --target-port=8010  // Use NodePort for Minikube
+                            kubectl apply -f deployment.yaml
+                            kubectl apply -f service.yaml
                         """
                     }
                 }
@@ -74,4 +74,3 @@ pipeline {
         }
     }
 }
-
