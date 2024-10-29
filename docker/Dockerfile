@@ -1,5 +1,5 @@
-# Use a lightweight OpenJDK base image
-FROM openjdk:17-jdk-slim
+# Use a Tomcat base image
+FROM tomcat:9.0
 
 # Expose port 8070 (the same as your application)
 EXPOSE 8070
@@ -10,8 +10,8 @@ ENV APP_HOME /usr/src/app
 # Create the app directory inside the container
 WORKDIR $APP_HOME
 
-# Copy the JAR file from the local machine to the container
-COPY target/shopping-cart-0.0.1-SNAPSHOT.jar app.jar
+# Copy the WAR file from the local machine to the Tomcat webapps directory
+COPY target/shopping-cart-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps/
 
-# Define the entry point for the container
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Optionally, you can define the CMD if you need to run something specific
+CMD ["catalina.sh", "run"]
