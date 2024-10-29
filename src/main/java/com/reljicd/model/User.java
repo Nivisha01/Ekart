@@ -2,8 +2,8 @@ package com.reljicd.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -30,7 +30,7 @@ public class User {
 
     @Column(name = "username", nullable = false, unique = true)
     @Size(min = 5, message = "*Your username must have at least 5 characters")
-    @NotEmpty(message = "*Please provide your name")
+    @NotEmpty(message = "*Please provide your username")
     private String username;
 
     @Column(name = "name")
