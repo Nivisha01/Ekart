@@ -1,12 +1,11 @@
 package com.reljicd.model;
 
-import org.hibernate.validator.constraints.Length;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-
 
 @Entity
 @Table(name = "product")
@@ -18,19 +17,21 @@ public class Product {
     private Long id;
 
     @Column(name = "name", nullable = false, unique = true)
-    @Length(min = 3, message = "*Name must have at least 5 characters")
+    @Length(min = 3, message = "*Name must have at least 3 characters")
     private String name;
 
     @Column(name = "description")
     private String description;
 
     @Column(name = "quantity", nullable = false)
-    @Min(value = 0, message = "*Quantity has to be non negative number")
+    @Min(value = 0, message = "*Quantity must be a non-negative number")
     private Integer quantity;
 
     @Column(name = "price", nullable = false)
-    @DecimalMin(value = "0.00", message = "*Price has to be non negative number")
+    @DecimalMin(value = "0.00", message = "*Price must be a non-negative number")
     private BigDecimal price;
+
+    // Getters and Setters
 
     public Long getId() {
         return id;
@@ -68,8 +69,8 @@ public class Product {
         return price;
     }
 
-    public void setPrice(BigDecimal unitPrice) {
-        this.price = unitPrice;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     @Override
@@ -79,11 +80,11 @@ public class Product {
 
         Product product = (Product) o;
 
-        return id.equals(product.id);
+        return id != null && id.equals(product.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return id != null ? id.hashCode() : 0;
     }
 }
