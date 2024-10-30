@@ -1,32 +1,42 @@
-pipeline {
+  pipeline {
     agent any
+
+    tools {
+        maven 'Maven'
+        jdk 'JDK17'
+    }
+
     environment {
-        DOCKER_IMAGE_NAME = 'nivisha/my-app:latest'
+        DOCKER_IMAGE_NAME = 'nivisha/ekart:latest'
         GITHUB_REPO = 'https://github.com/Nivisha01/Ekart.git'
         SONARQUBE_SERVER = 'http://44.196.180.172:9000/'
-        SONARQUBE_TOKEN = credentials('sonar-token') // Make sure 'sonar-token' is configured in Jenkins
-        PROJECT_NAME = 'project-Ekart'
+        SONARQUBE_TOKEN = credentials('sonar-token')
+        PROJECT_NAME = 'Web-app'
         SONAR_HOST_URL = "${SONARQUBE_SERVER}"
+        DOCKER_CREDENTIALS_ID = 'DockerHub_Cred'
     }
+
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
         stage('Checkout Code') {
             steps {
                 script {
-                    // Checkout code from GitHub repository using credentials
                     git credentialsId: 'GitHub_Credentials', url: "${GITHUB_REPO}", branch: 'main'
                 }
             }
         }
         stage('Build with Maven') {
             steps {
-                // Build the project and create the artifact
                 sh 'mvn clean package -DskipTests'
             }
         }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    // Run SonarQube analysis
                     sh """
                         mvn sonar:sonar \
                         -Dmaven.test.skip=true \
@@ -37,35 +47,50 @@ pipeline {
                 }
             }
         }
-        stage('Docker Build') {
+        stage('Docker Build and Push') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'DockerHub_Cred') {
-                        def artifactPath = "target/shopping-cart-0.0.1-SNAPSHOT.war"
-                        // Build the Docker image using the WAR file
-                        sh "docker build -t ${DOCKER_IMAGE_NAME} -f docker/Dockerfile ."
-                        // Push the Docker image to the registry
+                    sh "docker build -t ${DOCKER_IMAGE_NAME} ."
+
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
                         sh "docker push ${DOCKER_IMAGE_NAME}"
                     }
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
+        stage('Kubernetes Deployment') {
             steps {
                 script {
-                    // Apply Kubernetes deployment and service configuration
-                    sh 'kubectl apply -f k8s-deployment.yaml'
-                    sh 'kubectl apply -f k8s-service.yaml'
+                    // Check Minikube status
+                    sh 'minikube status'
+
+                    // Set Kubernetes context to Minikube
+                    sh 'kubectl config use-context minikube'
+
+                    // Create deployment
+                    sh "kubectl create deployment spring-web-app --image=${DOCKER_IMAGE_NAME}"
+
+                    // Expose the deployment
+                    sh "kubectl expose deployment spring-web-app --type=LoadBalancer --port=80 --target-port=8085"
+
+                    // Get the Minikube IP
+                    def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
+                    echo "Access your application at: http://${minikubeIp}:80"
+
+                    // Optionally, open the Minikube dashboard
+                    sh 'minikube dashboard &'
                 }
             }
         }
-    }
-    post {
+        post {
         success {
             echo 'Pipeline completed successfully!'
         }
         failure {
             echo 'Pipeline failed.'
         }
+        }
+        
     }
 }
